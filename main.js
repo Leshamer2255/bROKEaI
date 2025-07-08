@@ -243,6 +243,48 @@ function stopRainbowMode() {
   document.body.style.backgroundColor = '#000';
 }
 
+function activateMode(modeName, duration = 5000) {
+  // Видаляємо всі попередні режими
+  document.body.classList.remove(
+    'space-mode', 'quantum-mode', 'god-mode', 'music-mode', 
+    'parallel-mode', 'time-machine', 'alien-mode', 'party-mode',
+    'dance-mode', 'meditation-mode', 'yoga-mode', 'workout-mode',
+    'study-mode', 'work-mode', 'travel-mode'
+  );
+  
+  // Активуємо новий режим
+  document.body.classList.add(modeName);
+  
+  // Автоматично вимикаємо через заданий час
+  setTimeout(() => {
+    document.body.classList.remove(modeName);
+  }, duration);
+}
+
+function addEmojiEffect(emoji, effect) {
+  return `<span class="emoji emoji-${effect}">${emoji}</span>`;
+}
+
+function printLineWithEffect(text, effect = '') {
+  const line = document.createElement('div');
+  line.className = 'terminal-line';
+  if (effect) {
+    line.classList.add(effect);
+  }
+  line.textContent = '';
+  terminalOutput.appendChild(line);
+  
+  let i = 0;
+  function typeChar() {
+    if (i < text.length) {
+      line.textContent += text[i++];
+      setTimeout(typeChar, 12 + Math.random() * 30);
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
+    }
+  }
+  typeChar();
+}
+
 function startGlitchMode() {
   isGlitchMode = true;
   document.body.classList.add('glitch-mode');
@@ -313,6 +355,7 @@ function handleCommand(cmd) {
     printLine('- level: показати твій рівень');
     printLine('- score: показати рахунок');
     printLine('- commands: показати всі команди');
+    printLine('- effects: показати всі ефекти');
     printLine('- clear: очистити термінал');
     printLine('- time: показати час');
     printLine('- date: показати дату');
@@ -322,6 +365,12 @@ function handleCommand(cmd) {
     printLine('- matrix: активувати Matrix режим');
     printLine('- glitch: активувати глітч режим');
     printLine('- rainbow: активувати веселковий режим');
+    printLine('');
+    printLine('Спеціальні ефекти:');
+    printLine('- fireworks, earthquake, tornado, volcano');
+    printLine('- meteor, blackhole, supernova, ice_age');
+    printLine('- zombie, robot, ninja, pirate, wizard');
+    printLine('- dragon, unicorn, phoenix, mermaid');
     return;
   }
 
@@ -359,6 +408,30 @@ function handleCommand(cmd) {
         printLine(`- ${cmd}: ${info.description} (рівень ${info.level})`);
       }
     });
+    return;
+  }
+
+  if (command === 'effects') {
+    printLine('> effects');
+    printLine('Доступні ефекти:');
+    printLine('- fireworks: Феєрверки');
+    printLine('- earthquake: Землетрус');
+    printLine('- tornado: Торнадо');
+    printLine('- volcano: Вулкан');
+    printLine('- meteor: Метеорит');
+    printLine('- blackhole: Чорна діра');
+    printLine('- supernova: Супернова');
+    printLine('- ice_age: Льодовиковий період');
+    printLine('- apocalypse: Апокаліпсис');
+    printLine('- zombie: Зомбі апокаліпсис');
+    printLine('- robot: Робот');
+    printLine('- ninja: Ніндзя');
+    printLine('- pirate: Пірат');
+    printLine('- wizard: Чарівник');
+    printLine('- dragon: Дракон');
+    printLine('- unicorn: Єдиноріг');
+    printLine('- phoenix: Фенікс');
+    printLine('- mermaid: Русалка');
     return;
   }
 
@@ -531,8 +604,12 @@ function handleCommand(cmd) {
 
   if (command === 'dance') {
     printLine('> dance');
+    activateMode('dance-mode', 5000);
     printLine('💃🕺 Танцюємо! 💃🕺');
-    printLine('🎵 *музика грає* 🎵');
+    setTimeout(() => printLine('🎵 *музика грає* 🎵'), 500);
+    setTimeout(() => printLine('🕺 Брейк-данс!'), 1000);
+    setTimeout(() => printLine('💃 Вальс!'), 2000);
+    setTimeout(() => printLine('🕺 Хіп-хоп!'), 3000);
     return;
   }
 
@@ -566,112 +643,156 @@ function handleCommand(cmd) {
 
   if (command === 'meditate') {
     printLine('> meditate');
+    activateMode('meditation-mode', 6000);
     printLine('🧘 Медитуємо...');
-    setTimeout(() => printLine('🧘 Медитація завершена. Ти відчуваєш спокій.'), 2000);
+    setTimeout(() => printLine('🕉️ Ом...'), 1000);
+    setTimeout(() => printLine('🧘 Глибоке дихання...'), 2000);
+    setTimeout(() => printLine('🧘 Медитація завершена. Ти відчуваєш спокій.'), 4000);
     return;
   }
 
   if (command === 'yoga') {
     printLine('> yoga');
+    activateMode('yoga-mode', 8000);
     printLine('🧘‍♀️ Робимо йогу...');
-    printLine('Поза собаки вниз головою...');
-    setTimeout(() => printLine('🧘‍♀️ Йога завершена! Ти гнучкий як код!'), 2000);
+    setTimeout(() => printLine('🐕 Поза собаки вниз головою...'), 1000);
+    setTimeout(() => printLine('🌳 Поза дерева...'), 2000);
+    setTimeout(() => printLine('🦅 Поза орла...'), 3000);
+    setTimeout(() => printLine('🧘‍♀️ Йога завершена! Ти гнучкий як код!'), 5000);
     return;
   }
 
   if (command === 'workout') {
     printLine('> workout');
+    activateMode('workout-mode', 6000);
     printLine('💪 Тренуємося...');
-    printLine('1... 2... 3... 4... 5...');
-    setTimeout(() => printLine('💪 Тренування завершено! Ти сильний!'), 2000);
+    setTimeout(() => printLine('1... 2... 3... 4... 5...'), 500);
+    setTimeout(() => printLine('🏋️ Жим лежачи...'), 1500);
+    setTimeout(() => printLine('🏃 Біг на місці...'), 2500);
+    setTimeout(() => printLine('💪 Тренування завершено! Ти сильний!'), 4000);
     return;
   }
 
   if (command === 'study') {
     printLine('> study');
+    activateMode('study-mode', 7000);
     printLine('📚 Вчимося...');
-    printLine('Читаємо документацію...');
-    setTimeout(() => printLine('📚 Навчання завершено! Ти став розумнішим!'), 2000);
+    setTimeout(() => printLine('📖 Читаємо документацію...'), 1000);
+    setTimeout(() => printLine('✏️ Робимо нотатки...'), 2000);
+    setTimeout(() => printLine('🧠 Мозок працює на повну...'), 3000);
+    setTimeout(() => printLine('📚 Навчання завершено! Ти став розумнішим!'), 5000);
     return;
   }
 
   if (command === 'work') {
     printLine('> work');
+    activateMode('work-mode', 6000);
     printLine('💼 Працюємо...');
-    printLine('Пишемо код...');
-    setTimeout(() => printLine('💼 Робочий день завершено! Код готовий!'), 2000);
+    setTimeout(() => printLine('💻 Пишемо код...'), 1000);
+    setTimeout(() => printLine('🐛 Виправляємо баги...'), 2000);
+    setTimeout(() => printLine('☕ Перерва на каву...'), 3000);
+    setTimeout(() => printLine('💼 Робочий день завершено! Код готовий!'), 4000);
     return;
   }
 
   if (command === 'party') {
     printLine('> party');
+    activateMode('party-mode', 10000);
     printLine('🎉 ВЕЧІРКА! 🎉');
-    printLine('🎵🎶🎵🎶🎵🎶');
-    printLine('Танцюємо всю ніч!');
+    setTimeout(() => printLine('🎵🎶🎵🎶🎵🎶'), 500);
+    setTimeout(() => printLine('💃 Танцюємо всю ніч!'), 1000);
+    setTimeout(() => printLine('🎊 Конфеті!'), 2000);
+    setTimeout(() => printLine('🎈 Повітряні кульки!'), 3000);
+    setTimeout(() => printLine('🍕 Піца для всіх!'), 4000);
     return;
   }
 
   if (command === 'travel') {
     printLine('> travel');
+    activateMode('travel-mode', 8000);
     printLine('✈️ Подорожуємо...');
-    printLine('Відвідуємо різні сервери...');
-    setTimeout(() => printLine('✈️ Подорож завершена! Ти бачив світ!'), 2000);
+    setTimeout(() => printLine('🗺️ Відвідуємо різні сервери...'), 1000);
+    setTimeout(() => printLine('🌍 Європа...'), 2000);
+    setTimeout(() => printLine('🌏 Азія...'), 3000);
+    setTimeout(() => printLine('🌎 Америка...'), 4000);
+    setTimeout(() => printLine('✈️ Подорож завершена! Ти бачив світ!'), 6000);
     return;
   }
 
   if (command === 'space') {
     printLine('> space');
+    activateMode('space-mode', 8000);
     printLine('🚀 Космічний режим активовано!');
-    printLine('⭐ Зірки близько...');
-    printLine('🌌 Галактика чекає...');
+    setTimeout(() => printLine('⭐ Зірки близько...'), 500);
+    setTimeout(() => printLine('🌌 Галактика чекає...'), 1000);
+    setTimeout(() => printLine('🛸 НЛО помічено на горизонті!'), 2000);
     return;
   }
 
   if (command === 'alien') {
     printLine('> alien');
+    activateMode('alien-mode', 6000);
     printLine('👽 Прибулець з\'явився!');
-    printLine('👽 Привіт, землянине! Я прийшов з миром...');
-    setTimeout(() => printLine('👽 Прибулець полетів далі. Бувай!'), 3000);
+    setTimeout(() => printLine('👽 Привіт, землянине! Я прийшов з миром...'), 1000);
+    setTimeout(() => printLine('👽 Передаю космічні знання...'), 2000);
+    setTimeout(() => printLine('👽 Прибулець полетів далі. Бувай!'), 4000);
     return;
   }
 
   if (command === 'time_machine') {
     printLine('> time_machine');
+    activateMode('time-machine', 8000);
     printLine('⏰ Машина часу активована!');
-    printLine('⏰ Подорожуємо в часі...');
+    setTimeout(() => printLine('⏰ Подорожуємо в часі...'), 500);
     setTimeout(() => printLine('⏰ Ти повернувся в минуле!'), 2000);
+    setTimeout(() => printLine('🕰️ 1984 рік...'), 3000);
+    setTimeout(() => printLine('🕰️ 1999 рік...'), 4000);
+    setTimeout(() => printLine('🕰️ Повертаємось в теперішнє!'), 6000);
     return;
   }
 
   if (command === 'parallel_universe') {
     printLine('> parallel_universe');
+    activateMode('parallel-mode', 10000);
     printLine('🌌 Паралельний всесвіт...');
-    printLine('🌌 Тут все навпаки...');
-    printLine('🌌 Навіть код працює по-іншому...');
+    setTimeout(() => printLine('🌌 Тут все навпаки...'), 500);
+    setTimeout(() => printLine('🌌 Навіть код працює по-іншому...'), 1000);
+    setTimeout(() => printLine('🔄 Реальність перевертається...'), 2000);
+    setTimeout(() => printLine('🎭 Ти в іншому вимірі!'), 3000);
     return;
   }
 
   if (command === 'god_mode') {
     printLine('> god_mode');
+    activateMode('god-mode', 10000);
     printLine('👑 РЕЖИМ БОГА АКТИВОВАНО! 👑');
-    printLine('👑 Ти маєш абсолютну владу! 👑');
-    printLine('👑 Всі системи під контролем! 👑');
+    setTimeout(() => printLine('👑 Ти маєш абсолютну владу! 👑'), 500);
+    setTimeout(() => printLine('👑 Всі системи під контролем! 👑'), 1000);
+    setTimeout(() => printLine('⚡ Енергія всесвіту тече через тебе! ⚡'), 2000);
+    setTimeout(() => printLine('🌟 Ти можеш все! 🌟'), 3000);
     return;
   }
 
   if (command === 'music') {
     printLine('> music');
+    activateMode('music-mode', 7000);
     printLine('🎵 Музичний режим активовано!');
-    printLine('🎶 Грає: "Hacker\'s Anthem"');
-    printLine('🎵 Об\'єм: 100%');
+    setTimeout(() => printLine('🎶 Грає: "Hacker\'s Anthem"'), 500);
+    setTimeout(() => printLine('🎵 Об\'єм: 100%'), 1000);
+    setTimeout(() => printLine('🎸 Гітарне соло!'), 2000);
+    setTimeout(() => printLine('🥁 Барабани!'), 3000);
+    setTimeout(() => printLine('🎹 Синтезатор!'), 4000);
     return;
   }
 
   if (command === 'quantum') {
     printLine('> quantum');
+    activateMode('quantum-mode', 8000);
     printLine('⚛️ Квантовий режим активовано!');
-    printLine('⚛️ Суперпозиція активна...');
-    printLine('⚛️ Ти одночасно тут і там...');
+    setTimeout(() => printLine('⚛️ Суперпозиція активна...'), 500);
+    setTimeout(() => printLine('⚛️ Ти одночасно тут і там...'), 1000);
+    setTimeout(() => printLine('🔬 Квантова запутанність виявлена!'), 2000);
+    setTimeout(() => printLine('🌌 Паралельні всесвіти зливаються...'), 3000);
     return;
   }
 
@@ -694,6 +815,188 @@ function handleCommand(cmd) {
     } else {
       printLine('unzip: використання: unzip [файл]');
     }
+    return;
+  }
+
+  // Нові круті команди
+  if (command === 'fireworks') {
+    printLine('> fireworks');
+    activateMode('party-mode', 5000);
+    printLine('🎆 Феєрверки запущено!');
+    setTimeout(() => printLine('💥 БУМ!'), 500);
+    setTimeout(() => printLine('✨ Спалах!'), 1000);
+    setTimeout(() => printLine('🎇 Ракети!'), 1500);
+    setTimeout(() => printLine('🎆 Феєрверки завершено!'), 4000);
+    return;
+  }
+
+  if (command === 'earthquake') {
+    printLine('> earthquake');
+    document.body.style.animation = 'earthquake 2s ease-in-out';
+    printLine('🌋 Землетрус!');
+    setTimeout(() => printLine('🏢 Будівлі трясуться!'), 500);
+    setTimeout(() => printLine('🌋 Землетрус завершився!'), 2000);
+    setTimeout(() => {
+      document.body.style.animation = '';
+    }, 2000);
+    return;
+  }
+
+  if (command === 'tornado') {
+    printLine('> tornado');
+    document.body.style.animation = 'tornado 3s ease-in-out';
+    printLine('🌪️ Торнадо!');
+    setTimeout(() => printLine('🌪️ Вітер крутить все!'), 1000);
+    setTimeout(() => printLine('🌪️ Торнадо пройшов!'), 3000);
+    setTimeout(() => {
+      document.body.style.animation = '';
+    }, 3000);
+    return;
+  }
+
+  if (command === 'volcano') {
+    printLine('> volcano');
+    activateMode('alien-mode', 4000);
+    printLine('🌋 Вулкан прокинувся!');
+    setTimeout(() => printLine('🔥 Лава тече!'), 1000);
+    setTimeout(() => printLine('🌋 Вулкан затих!'), 3000);
+    return;
+  }
+
+  if (command === 'meteor') {
+    printLine('> meteor');
+    document.body.style.animation = 'meteor 2s ease-in-out';
+    printLine('☄️ Метеорит!');
+    setTimeout(() => printLine('💥 ВИБУХ!'), 1000);
+    setTimeout(() => printLine('☄️ Метеорит знищив все!'), 2000);
+    setTimeout(() => {
+      document.body.style.animation = '';
+    }, 2000);
+    return;
+  }
+
+  if (command === 'blackhole') {
+    printLine('> blackhole');
+    activateMode('quantum-mode', 6000);
+    printLine('🕳️ Чорна діра!');
+    setTimeout(() => printLine('🕳️ Все засмоктується!'), 1000);
+    setTimeout(() => printLine('🌌 Ти в іншому вимірі!'), 3000);
+    setTimeout(() => printLine('🕳️ Чорна діра закрилася!'), 5000);
+    return;
+  }
+
+  if (command === 'supernova') {
+    printLine('> supernova');
+    activateMode('god-mode', 5000);
+    printLine('⭐ СУПЕРНОВА!');
+    setTimeout(() => printLine('💥 Зірка вибухає!'), 500);
+    setTimeout(() => printLine('🌟 Нова зірка народилася!'), 2000);
+    setTimeout(() => printLine('⭐ СУПЕРНОВА завершена!'), 4000);
+    return;
+  }
+
+  if (command === 'ice_age') {
+    printLine('> ice_age');
+    document.body.style.background = 'linear-gradient(45deg, #87ceeb, #b0e0e6, #f0f8ff)';
+    document.body.style.animation = 'iceAge 4s ease-in-out';
+    printLine('❄️ Льодовиковий період!');
+    setTimeout(() => printLine('🧊 Все замерзає!'), 1000);
+    setTimeout(() => printLine('❄️ Льодовиковий період завершився!'), 4000);
+    setTimeout(() => {
+      document.body.style.background = '#0f0f0f';
+      document.body.style.animation = '';
+    }, 4000);
+    return;
+  }
+
+  if (command === 'apocalypse') {
+    printLine('> apocalypse');
+    activateMode('parallel-mode', 8000);
+    printLine('☠️ АПОКАЛІПСИС!');
+    setTimeout(() => printLine('☠️ Кінець світу!'), 1000);
+    setTimeout(() => printLine('☠️ Вижили тільки хакери!'), 3000);
+    setTimeout(() => printLine('☠️ Апокаліпсис завершився!'), 6000);
+    return;
+  }
+
+  if (command === 'zombie') {
+    printLine('> zombie');
+    activateMode('alien-mode', 6000);
+    printLine('🧟 ЗОМБІ АПОКАЛІПСИС!');
+    setTimeout(() => printLine('🧟 Зомбі повзають...'), 1000);
+    setTimeout(() => printLine('🧟 Біжимо від зомбі!'), 2000);
+    setTimeout(() => printLine('🧟 Зомбі зникли!'), 4000);
+    return;
+  }
+
+  if (command === 'robot') {
+    printLine('> robot');
+    activateMode('quantum-mode', 5000);
+    printLine('🤖 Робот активовано!');
+    setTimeout(() => printLine('🤖 Робот працює...'), 1000);
+    setTimeout(() => printLine('🤖 Робот завершив роботу!'), 3000);
+    return;
+  }
+
+  if (command === 'ninja') {
+    printLine('> ninja');
+    activateMode('meditation-mode', 4000);
+    printLine('🥷 Ніндзя з\'явився!');
+    setTimeout(() => printLine('🥷 Ніндзя зник у тіні!'), 2000);
+    return;
+  }
+
+  if (command === 'pirate') {
+    printLine('> pirate');
+    activateMode('travel-mode', 5000);
+    printLine('🏴‍☠️ Піратський корабель!');
+    setTimeout(() => printLine('🏴‍☠️ Шукаємо скарби!'), 1000);
+    setTimeout(() => printLine('🏴‍☠️ Скарби знайдено!'), 3000);
+    return;
+  }
+
+  if (command === 'wizard') {
+    printLine('> wizard');
+    activateMode('god-mode', 6000);
+    printLine('🧙‍♂️ Чарівник з\'явився!');
+    setTimeout(() => printLine('✨ Магія працює!'), 1000);
+    setTimeout(() => printLine('🧙‍♂️ Чарівник зник!'), 4000);
+    return;
+  }
+
+  if (command === 'dragon') {
+    printLine('> dragon');
+    activateMode('space-mode', 7000);
+    printLine('🐉 Дракон прокинувся!');
+    setTimeout(() => printLine('🔥 Дракон дихає вогнем!'), 1000);
+    setTimeout(() => printLine('🐉 Дракон полетів!'), 4000);
+    return;
+  }
+
+  if (command === 'unicorn') {
+    printLine('> unicorn');
+    activateMode('rainbow', 5000);
+    printLine('🦄 Єдиноріг з\'явився!');
+    setTimeout(() => printLine('🌈 Веселка з\'явилася!'), 1000);
+    setTimeout(() => printLine('🦄 Єдиноріг зник!'), 3000);
+    return;
+  }
+
+  if (command === 'phoenix') {
+    printLine('> phoenix');
+    activateMode('god-mode', 6000);
+    printLine('🦅 Фенікс воскрес!');
+    setTimeout(() => printLine('🔥 Фенікс горить!'), 1000);
+    setTimeout(() => printLine('🦅 Фенікс полетів!'), 4000);
+    return;
+  }
+
+  if (command === 'mermaid') {
+    printLine('> mermaid');
+    activateMode('travel-mode', 5000);
+    printLine('🧜‍♀️ Русалка з\'явилася!');
+    setTimeout(() => printLine('🌊 Русалка плаває!'), 1000);
+    setTimeout(() => printLine('🧜‍♀️ Русалка зникла!'), 3000);
     return;
   }
 
@@ -840,10 +1143,13 @@ printLine('- help: показати довідку');
 printLine('- status: показати статус системи');
 printLine('- level: показати твій рівень');
 printLine('- commands: показати всі команди');
+printLine('- effects: показати всі ефекти');
 printLine('- time: показати час');
 printLine('- weather: показати погоду');
 printLine('- joke: розповісти жарт');
 printLine('- matrix: активувати Matrix режим');
+printLine('');
+printLine('Спробуй круті ефекти: fireworks, earthquake, dragon!');
 printLine('');
 printLine('Введи команду: unlock');
 terminalInput.focus(); 
