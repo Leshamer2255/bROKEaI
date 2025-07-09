@@ -10,10 +10,13 @@ let currentPuzzle = null;
 let matrixInterval = null;
 let userLevel = 1;
 let userScore = 0;
+let userMoney = 100; // Початкові гроші
 let discoveredCommands = new Set();
 let isGlitchMode = false;
 let isRainbowMode = false;
 let rainbowInterval = null;
+let currentChoice = null; // Поточний вибір
+let gameEvents = []; // Історія подій
 
 // Розширений список команд
 const commands = {
@@ -30,6 +33,7 @@ const commands = {
   status: { description: 'Показати статус', level: 1 },
   level: { description: 'Показати рівень', level: 1 },
   score: { description: 'Показати рахунок', level: 1 },
+  money: { description: 'Показати гроші', level: 1 },
   commands: { description: 'Показати всі команди', level: 1 },
   
   // Розважальні команди
@@ -56,6 +60,13 @@ const commands = {
   reboot: { description: 'Перезавантажити систему', level: 4 },
   shutdown: { description: 'Виключити систему', level: 5 },
   quantum: { description: 'Квантовий режим', level: 6 },
+  
+  // Грошові команди
+  work: { description: 'Працювати за гроші', level: 1 },
+  gamble: { description: 'Азартні ігри', level: 2 },
+  steal: { description: 'Красти гроші', level: 3 },
+  bribe: { description: 'Давати хабар', level: 4 },
+  bank: { description: 'Банківські операції', level: 2 },
   time: { description: 'Показати час', level: 1 },
   date: { description: 'Показати дату', level: 1 },
   whoami: { description: 'Хто я?', level: 1 },
@@ -285,6 +296,126 @@ function printLineWithEffect(text, effect = '') {
   typeChar();
 }
 
+function addMoney(amount, reason = '') {
+  userMoney += amount;
+  if (amount > 0) {
+    printLine(`💰 +${amount}$ ${reason}`, 'success-message');
+  } else {
+    printLine(`💸 ${amount}$ ${reason}`, 'error-message');
+  }
+  printLine(`💰 Баланс: ${userMoney}$`);
+}
+
+function addScore(amount, reason = '') {
+  userScore += amount;
+  userLevel = Math.floor(userScore / 100) + 1;
+  if (amount > 0) {
+    printLine(`⭐ +${amount} очок ${reason}`, 'success-message');
+  } else {
+    printLine(`📉 ${amount} очок ${reason}`, 'error-message');
+  }
+  printLine(`⭐ Рахунок: ${userScore} | Рівень: ${userLevel}`);
+}
+
+function showChoice(question, options) {
+  currentChoice = { question, options };
+  printLine(`🤔 ${question}`, 'warning-message');
+  options.forEach((option, index) => {
+    printLine(`${index + 1}. ${option.text} (${option.cost || 0}$)`);
+  });
+  printLine('Введи номер вибору (1, 2, 3...) або "cancel" для скасування');
+}
+
+function handleChoice(choice) {
+  if (!currentChoice) return false;
+  
+  const selectedOption = currentChoice.options[choice - 1];
+  if (!selectedOption) {
+    printLine('❌ Невірний вибір!', 'error-message');
+    return false;
+  }
+  
+  if (selectedOption.cost && userMoney < selectedOption.cost) {
+    printLine('❌ Недостатньо грошей!', 'error-message');
+    return false;
+  }
+  
+  // Виконуємо вибір
+  if (selectedOption.cost) {
+    addMoney(-selectedOption.cost, selectedOption.text);
+  }
+  if (selectedOption.score) {
+    addScore(selectedOption.score, selectedOption.text);
+  }
+  if (selectedOption.effect) {
+    selectedOption.effect();
+  }
+  
+  // Додаємо подію в історію
+  gameEvents.push({
+    type: 'choice',
+    choice: selectedOption.text,
+    cost: selectedOption.cost || 0,
+    score: selectedOption.score || 0,
+    timestamp: new Date().toLocaleTimeString()
+  });
+  
+  currentChoice = null;
+  return true;
+}
+
+function generateRandomEvent() {
+  const events = [
+    {
+      name: 'Бандит',
+      question: 'Бандит вимагає гроші. Що робиш?',
+      options: [
+        { text: 'Заплатити 50$', cost: 50, score: 10, effect: () => printLine('💸 Ти заплатив бандиту. Він задоволений.') },
+        { text: 'Бігти', cost: 0, score: -5, effect: () => printLine('🏃 Ти втік, але втратив репутацію.') },
+        { text: 'Боротися', cost: 0, score: 20, effect: () => printLine('👊 Ти переміг бандита! +20$') }
+      ]
+    },
+    {
+      name: 'Охоронець',
+      question: 'Охоронець просить хабар. Що робиш?',
+      options: [
+        { text: 'Дати хабар 30$', cost: 30, score: 5, effect: () => printLine('💰 Ти дав хабар. Охоронець пропустив тебе.') },
+        { text: 'Спробувати пройти без хабар', cost: 0, score: 15, effect: () => printLine('🎭 Ти пройшов без хабар!') },
+        { text: 'Підкупити за 100$', cost: 100, score: 25, effect: () => printLine('💎 Ти підкупив охоронця. Тепер він твій друг!') }
+      ]
+    },
+    {
+      name: 'Хакер',
+      question: 'Хакер пропонує співпрацю. Що робиш?',
+      options: [
+        { text: 'Погодитися (платиш 20$)', cost: 20, score: 30, effect: () => printLine('🤝 Ти погодився на співпрацю. Хакер навчив тебе нових трюків!') },
+        { text: 'Відмовитися', cost: 0, score: 0, effect: () => printLine('❌ Ти відмовився. Хакер зник.') },
+        { text: 'Обдурити хакера', cost: 0, score: 40, effect: () => printLine('🎭 Ти обдурив хакера і отримав його знання!') }
+      ]
+    },
+    {
+      name: 'Поліція',
+      question: 'Поліція підозрює тебе. Що робиш?',
+      options: [
+        { text: 'Дати хабар 80$', cost: 80, score: -10, effect: () => printLine('💰 Ти дав хабар поліції. Вони задоволені.') },
+        { text: 'Спробувати втекти', cost: 0, score: 20, effect: () => printLine('🏃 Ти втік від поліції!') },
+        { text: 'Співпрацювати', cost: 0, score: 15, effect: () => printLine('🤝 Ти співпрацював з поліцією. Вони тебе відпустили.') }
+      ]
+    },
+    {
+      name: 'Бос',
+      question: 'Бос мафії хоче поговорити. Що робиш?',
+      options: [
+        { text: 'Поговорити (платиш 10$ за каву)', cost: 10, score: 25, effect: () => printLine('☕ Ти поговорив з босом. Він тебе поважає.') },
+        { text: 'Відмовитися', cost: 0, score: -15, effect: () => printLine('❌ Ти відмовився. Бос не задоволений.') },
+        { text: 'Пропонувати справу', cost: 0, score: 50, effect: () => printLine('💼 Ти запропонував справу босу. Він зацікавлений!') }
+      ]
+    }
+  ];
+  
+  return events[Math.floor(Math.random() * events.length)];
+}
+
 function startGlitchMode() {
   isGlitchMode = true;
   document.body.classList.add('glitch-mode');
@@ -328,13 +459,29 @@ function handleCommand(cmd) {
   
   // Додаємо команду до відкритих
   discoveredCommands.add(command);
+
+  // Обробка виборів
+  if (currentChoice) {
+    if (command === 'cancel') {
+      currentChoice = null;
+      printLine('❌ Вибір скасовано.');
+      return;
+    }
+    
+    const choiceNum = parseInt(command);
+    if (!isNaN(choiceNum)) {
+      if (handleChoice(choiceNum)) {
+        return;
+      }
+    }
+  }
   
   if (awaitingAnswer && currentPuzzle) {
     if (currentPuzzle.answer.some(ans => command === ans)) {
       printLine('> ' + cmd);
       printLine('Доступ дозволено.');
-      userScore += 100;
-      userLevel = Math.floor(userScore / 100) + 1;
+      addScore(100, 'Розгадка загадки');
+      addMoney(25, 'Винагорода за розгадку');
       stage++;
       awaitingAnswer = false;
       currentPuzzle = null;
@@ -354,6 +501,7 @@ function handleCommand(cmd) {
     printLine('- status: показати статус системи');
     printLine('- level: показати твій рівень');
     printLine('- score: показати рахунок');
+    printLine('- money: показати гроші');
     printLine('- commands: показати всі команди');
     printLine('- effects: показати всі ефекти');
     printLine('- clear: очистити термінал');
@@ -365,6 +513,15 @@ function handleCommand(cmd) {
     printLine('- matrix: активувати Matrix режим');
     printLine('- glitch: активувати глітч режим');
     printLine('- rainbow: активувати веселковий режим');
+    printLine('');
+    printLine('Грошові команди:');
+    printLine('- work: працювати за гроші');
+    printLine('- gamble: азартні ігри');
+    printLine('- steal: красти гроші');
+    printLine('- bribe: давати хабар');
+    printLine('- bank: банківські операції');
+    printLine('- event: випадкова подія');
+    printLine('- history: історія подій');
     printLine('');
     printLine('Спеціальні ефекти:');
     printLine('- fireworks, earthquake, tornado, volcano');
@@ -381,7 +538,9 @@ function handleCommand(cmd) {
     printLine(`Веселковий режим: ${isRainbowMode ? 'АКТИВНИЙ' : 'ВИМКНЕНИЙ'}`);
     printLine(`Рівень: ${userLevel}`);
     printLine(`Рахунок: ${userScore}`);
+    printLine(`Гроші: ${userMoney}$`);
     printLine(`Відкрито команд: ${discoveredCommands.size}`);
+    printLine(`Подій у грі: ${gameEvents.length}`);
     return;
   }
 
@@ -397,6 +556,14 @@ function handleCommand(cmd) {
     printLine('> score');
     printLine(`Рахунок: ${userScore}`);
     printLine(`Рівень: ${userLevel}`);
+    printLine(`До наступного рівня: ${100 - (userScore % 100)} очок`);
+    return;
+  }
+
+  if (command === 'money') {
+    printLine('> money');
+    printLine(`💰 Баланс: ${userMoney}$`);
+    printLine(`💳 Статус: ${userMoney > 1000 ? 'Багатий' : userMoney > 500 ? 'Заможний' : userMoney > 100 ? 'Середній' : 'Бідний'}`);
     return;
   }
 
@@ -1000,6 +1167,111 @@ function handleCommand(cmd) {
     return;
   }
 
+  // Грошові команди
+  if (command === 'work') {
+    printLine('> work');
+    activateMode('work-mode', 4000);
+    printLine('💼 Працюємо...');
+    setTimeout(() => printLine('💻 Пишемо код...'), 1000);
+    setTimeout(() => printLine('🐛 Виправляємо баги...'), 2000);
+    setTimeout(() => {
+      const earnings = Math.floor(Math.random() * 50) + 20;
+      addMoney(earnings, 'Робота');
+      addScore(10, 'Робота');
+    }, 3000);
+    return;
+  }
+
+  if (command === 'gamble') {
+    printLine('> gamble');
+    if (userMoney < 10) {
+      printLine('❌ Недостатньо грошей для азартних ігор!', 'error-message');
+      return;
+    }
+    printLine('🎰 Азартні ігри...');
+    setTimeout(() => {
+      const bet = 10;
+      const win = Math.random() > 0.6;
+      if (win) {
+        const winnings = Math.floor(Math.random() * 100) + 20;
+        addMoney(winnings, 'Виграш');
+        addScore(15, 'Виграш');
+        printLine('🎉 Ти виграв!');
+      } else {
+        addMoney(-bet, 'Програш');
+        addScore(-5, 'Програш');
+        printLine('😢 Ти програв...');
+      }
+    }, 2000);
+    return;
+  }
+
+  if (command === 'steal') {
+    printLine('> steal');
+    printLine('🦹 Крадемо гроші...');
+    setTimeout(() => {
+      const success = Math.random() > 0.7;
+      if (success) {
+        const stolen = Math.floor(Math.random() * 100) + 50;
+        addMoney(stolen, 'Крадіжка');
+        addScore(20, 'Успішна крадіжка');
+        printLine('💰 Крадіжка вдалася!');
+      } else {
+        addMoney(-20, 'Штраф');
+        addScore(-10, 'Неуспішна крадіжка');
+        printLine('🚔 Тебе спіймали!');
+      }
+    }, 2000);
+    return;
+  }
+
+  if (command === 'bribe') {
+    printLine('> bribe');
+    if (userMoney < 50) {
+      printLine('❌ Недостатньо грошей для хабаря!', 'error-message');
+      return;
+    }
+    printLine('💰 Даємо хабар...');
+    setTimeout(() => {
+      const cost = 50;
+      addMoney(-cost, 'Хабар');
+      addScore(25, 'Хабар');
+      printLine('🤝 Хабар прийнято!');
+    }, 1500);
+    return;
+  }
+
+  if (command === 'bank') {
+    printLine('> bank');
+    printLine('🏦 Банківські операції:');
+    printLine('1. Покласти гроші (мінімум 10$)');
+    printLine('2. Зняти гроші (мінімум 10$)');
+    printLine('3. Кредит (під 10% річних)');
+    printLine('4. Інвестиції (ризиковано)');
+    printLine('Введи номер операції (1-4)');
+    return;
+  }
+
+  if (command === 'event') {
+    printLine('> event');
+    const randomEvent = generateRandomEvent();
+    showChoice(randomEvent.question, randomEvent.options);
+    return;
+  }
+
+  if (command === 'history') {
+    printLine('> history');
+    printLine('📜 Історія подій:');
+    if (gameEvents.length === 0) {
+      printLine('Поки що немає подій.');
+    } else {
+      gameEvents.forEach((event, index) => {
+        printLine(`${index + 1}. ${event.timestamp} - ${event.choice} (${event.cost}$) (${event.score} очок)`);
+      });
+    }
+    return;
+  }
+
   if (command === './hack_tools.exe' || command === 'hack_tools.exe') {
     printLine('> ./hack_tools.exe');
     printLine('Запуск інструментів хакінгу...');
@@ -1023,8 +1295,8 @@ function handleCommand(cmd) {
         setTimeout(() => {
           printLine('Підключено! Отримано доступ до ядра ШІ!');
           printLine('Ти успішно зламав систему!');
-          userScore += 200;
-          printLine('+200 очок за успішний хак!');
+          addScore(200, 'Успішний хак');
+          addMoney(100, 'Винагорода за хак');
         }, 1500);
       } else {
         printLine(`telnet: Порт ${port} закритий або недоступний`);
@@ -1088,16 +1360,16 @@ function handleCommand(cmd) {
   if (command === 'secret') {
     printLine('> secret');
     printLine('🔐 Секретна команда знайдена!');
-    printLine('🔐 Ти отримуєш +50 очок!');
-    userScore += 50;
+    addScore(50, 'Секретна команда');
+    addMoney(15, 'Секретна винагорода');
     return;
   }
 
   if (command === 'easter_egg') {
     printLine('> easter_egg');
     printLine('🥚 Пасхалка знайдена!');
-    printLine('🥚 Ти отримуєш +25 очок!');
-    userScore += 25;
+    addScore(25, 'Пасхалка');
+    addMoney(10, 'Пасхалка');
     return;
   }
 
@@ -1138,18 +1410,19 @@ terminalForm.addEventListener('submit', e => {
 printLine('Вітаю у грі "Зламай ШІ"!');
 printLine('Ти - хакер, який намагається зламати штучний інтелект.');
 printLine('');
+printLine('💰 Початковий баланс: 100$');
+printLine('⭐ Початковий рахунок: 0 очок');
+printLine('');
 printLine('Доступні команди:');
 printLine('- help: показати довідку');
 printLine('- status: показати статус системи');
-printLine('- level: показати твій рівень');
-printLine('- commands: показати всі команди');
+printLine('- money: показати гроші');
+printLine('- work: працювати за гроші');
+printLine('- event: випадкова подія');
 printLine('- effects: показати всі ефекти');
-printLine('- time: показати час');
-printLine('- weather: показати погоду');
-printLine('- joke: розповісти жарт');
-printLine('- matrix: активувати Matrix режим');
 printLine('');
 printLine('Спробуй круті ефекти: fireworks, earthquake, dragon!');
+printLine('Спробуй грошові команди: work, gamble, event!');
 printLine('');
 printLine('Введи команду: unlock');
 terminalInput.focus(); 
